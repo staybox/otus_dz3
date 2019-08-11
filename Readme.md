@@ -39,4 +39,4 @@
 
 [Процесс решения ДЗ здесь.]
 
-[1]: https://github.com/staybox/otus_dz3/blob/master/process.txt
+[Процесс решения ДЗ здесь.]: https://github.com/staybox/otus_dz3/blob/master/process.txt
