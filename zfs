@@ -91,7 +91,7 @@ sde                          8:64   0    1G  0 disk
 ├─sde1                       8:65   0 1014M  0 part
 └─sde9                       8:73   0    8M  0 part
 
-Видим наши диски которые задействованы в zfs пуле /dev/sdb и /dev/sde
+Видим наши диски которые задействованы в zfs пуле /dev/sdb и /dev/sde. Так как диски разных размеров то массив имеет размер самого маленького из дисков. А доступный объем 900 МБ.
 
 [root@lvm ~]# df -h
 Filesystem                          Size  Used Avail Use% Mounted on
@@ -108,3 +108,29 @@ ZFSpool                             880M     0  880M   0% /ZFSpool
 tmpfs                                24M     0   24M   0% /run/user/0
 
 Далее можно переходить в директорию cd /ZFSpool и можем создавать там файлы.
+
+Еще мы можем создавать снэпшоты.
+
+11. zfs snapshot /ZFSpool@friday - Создается снэпшот /ZFSpool с именем friday.
+
+12. [root@lvm ~]# zfs list -t snapshot
+NAME             USED  AVAIL  REFER  MOUNTPOINT
+ZFSpool@friday     0B      -    24K  -
+
+Видим наши снапшоты. Их всего 1.
+
+Снимки файловых систем будут доступны в каталоге .zfs/snapshot в корне файловой системы. 
+Но чтобы увидеть эту папку нужно выполнить команду: zfs set snapdir=visible ZFSpool (ZFSpool это имя нашего пула)
+
+Далее переходим в /ZFSpool/.zfs/ и видим папку для снэпшотов:
+[root@lvm ~]# ls -lah /ZFSpool/.zfs/
+total 512
+drwxrwxrwx 1 root root 0 Aug 12 14:43 .
+drwxr-xr-x 2 root root 2 Aug 12 14:43 ..
+drwxrwxrwx 2 root root 2 Aug 12 15:21 shares
+drwxrwxrwx 2 root root 2 Aug 12 15:12 snapshot
+
+13. zfs destroy ZFSpool@friday - Удалить снэпшот мы можем этой командой
+
+
+
