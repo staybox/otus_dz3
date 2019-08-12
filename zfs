@@ -131,6 +131,3 @@ drwxrwxrwx 2 root root 2 Aug 12 15:21 shares
 drwxrwxrwx 2 root root 2 Aug 12 15:12 snapshot
 
 13. zfs destroy ZFSpool@friday - Удалить снэпшот мы можем этой командой
-
-
-
