@@ -130,4 +130,9 @@ drwxr-xr-x 2 root root 2 Aug 12 14:43 ..
 drwxrwxrwx 2 root root 2 Aug 12 15:21 shares
 drwxrwxrwx 2 root root 2 Aug 12 15:12 snapshot
 
-13. zfs destroy ZFSpool@friday - Удалить снэпшот мы можем этой командой
+13. zfs set mountpoint=/opt ZFSpool - Монтируем наш пул в каталог /opt.
+[root@lvm ~]# zfs list
+NAME      USED  AVAIL  REFER  MOUNTPOINT
+ZFSpool   100K   880M    24K  /opt
+
+14. zfs destroy ZFSpool@friday - Удалить снэпшот мы можем этой командой
