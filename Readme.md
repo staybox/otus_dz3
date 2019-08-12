@@ -42,6 +42,6 @@
 [Процесс решения ДЗ здесь.]: https://github.com/staybox/otus_dz3/blob/master/process.txt
 
 #### Работа с zfs 
-Процесс установки и настройки zfs здесь.
+[Процесс установки и настройки zfs здесь.]
 
 [Процесс установки и настройки zfs здесь.]: https://github.com/staybox/otus_dz3/blob/master/zfs
