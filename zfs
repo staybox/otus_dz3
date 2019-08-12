@@ -1,0 +1,110 @@
+Работа с zfs
+1. cat /etc/redhat-release - Смотрим какая у нас версия дистрибутива
+В моем случае: CentOS Linux release 7.5.1804 (Core)
+
+2. yum install http://download.zfsonlinux.org/epel/zfs-release.el7_5.noarch.rpm -y - Загрузим и установим пакет
+
+3. Зайдем в файл nano /etc/yum.repos.d/zfs.repo
+Существует два способа загрузить модуль ZFS в ядро Линукса - это DKMS и KABI. Если мы будет использовать DKMS то нам надо будет перекомпилировать ядро, с KABI 
+перекомпилировать не надо, но его надо будет установить в автозагрузку при запуске системы или загрузить вручную, в данном случае вручную.
+
+nano /etc/yum.repos.d/zfs.repo:
+[zfs] # Это настройки для DKMS
+name=ZFS on Linux for EL7 - dkms
+baseurl=https://download.zfsonlinux.org/epel/7.4/$basearch/
+enabled=1 # Здесь ставим 0
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+
+[zfs-kmod] # Это настройки для KABI
+name=ZFS on Linux for EL7 - kmod
+baseurl=https://download.zfsonlinux.org/epel/7.4/kmod/$basearch/
+enabled=0 # Здесь ставим 1
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+
+4. yum install zfs -y - Инсталлируем zfs
+
+5. reboot
+
+6. lsmod | grep zfs - Проверяем загрузился ли модуль в ядро при загрузке (скорее всего нет)
+
+7. modprobe zfs - Загружаем модуль в ядро и делаем снова lsmod | grep zfs
+
+zfs                  3564468  0
+zunicode              331170  1 zfs
+zavl                   15236  1 zfs
+icp                   270148  1 zfs
+zcommon                73440  1 zfs
+znvpair                89131  2 zfs,zcommon
+spl                   102412  4 icp,zfs,zcommon,znvpair
+
+Как видим модуль загружен, далее можем создавать zfs пулы.
+
+8. zpool create -f ZFSpool mirror /dev/sdb /dev/sde - создаем зеркало из 2 дисков с именем ZFSpool.
+
+9. zpool status
+  pool: ZFSpool
+ state: ONLINE
+  scan: none requested
+config:
+
+        NAME        STATE     READ WRITE CKSUM
+        ZFSpool     ONLINE       0     0     0
+          mirror-0  ONLINE       0     0     0
+            sdb     ONLINE       0     0     0
+            sde     ONLINE       0     0     0
+
+errors: No known data errors
+
+10. zfs list
+NAME      USED  AVAIL  REFER  MOUNTPOINT
+ZFSpool  82.5K   880M    24K  /ZFSpool
+----------------------------------------------------------------------------------------------------------
+Видим куда смонтирован пул. Можем сделать ls -l / и увидеть что папка лежит в корне. Он смонтировался сам.
+
+[root@lvm ~]# lsblk
+NAME                       MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                          8:0    0   40G  0 disk
+├─sda1                       8:1    0    1M  0 part
+├─sda2                       8:2    0    1G  0 part /boot
+└─sda3                       8:3    0   39G  0 part
+  ├─VolGroup00-LogVol00    253:0    0    8G  0 lvm  /
+  ├─VolGroup00-LogVol01    253:1    0  1.5G  0 lvm  [SWAP]
+  └─VolGroup00-LogVol_Home 253:7    0    2G  0 lvm  /home
+sdb                          8:16   0   10G  0 disk
+├─sdb1                       8:17   0   10G  0 part
+└─sdb9                       8:25   0    8M  0 part
+sdc                          8:32   0    2G  0 disk
+├─vg_var-lv_var_rmeta_0    253:2    0    4M  0 lvm
+│ └─vg_var-lv_var          253:6    0  952M  0 lvm  /var
+└─vg_var-lv_var_rimage_0   253:3    0  952M  0 lvm
+  └─vg_var-lv_var          253:6    0  952M  0 lvm  /var
+sdd                          8:48   0    1G  0 disk
+├─vg_var-lv_var_rmeta_1    253:4    0    4M  0 lvm
+│ └─vg_var-lv_var          253:6    0  952M  0 lvm  /var
+└─vg_var-lv_var_rimage_1   253:5    0  952M  0 lvm
+  └─vg_var-lv_var          253:6    0  952M  0 lvm  /var
+sde                          8:64   0    1G  0 disk
+├─sde1                       8:65   0 1014M  0 part
+└─sde9                       8:73   0    8M  0 part
+
+Видим наши диски которые задействованы в zfs пуле /dev/sdb и /dev/sde
+
+[root@lvm ~]# df -h
+Filesystem                          Size  Used Avail Use% Mounted on
+/dev/mapper/VolGroup00-LogVol00     8.0G  778M  7.3G  10% /
+devtmpfs                            110M     0  110M   0% /dev
+tmpfs                               118M     0  118M   0% /dev/shm
+tmpfs                               118M  4.6M  114M   4% /run
+tmpfs                               118M     0  118M   0% /sys/fs/cgroup
+/dev/sda2                          1014M   61M  954M   6% /boot
+/dev/mapper/VolGroup00-LogVol_Home  2.0G   33M  2.0G   2% /home
+/dev/mapper/vg_var-lv_var           922M  143M  716M  17% /var
+tmpfs                                24M     0   24M   0% /run/user/1000
+ZFSpool                             880M     0  880M   0% /ZFSpool
+tmpfs                                24M     0   24M   0% /run/user/0
+
+Далее можно переходить в директорию cd /ZFSpool и можем создавать там файлы.
